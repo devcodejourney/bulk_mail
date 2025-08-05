@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="{{ config.CHARSET }}">
+    <title>{{ subject }}</title>
+</head>
+
+<body>
+    <h1>Hello {{ recipient_name|default('Valued Customer') }}!</h1>
+
+    <p>Thank you for your interest in our services. Here are some useful links:</p>
+
+    <ul>
+        {% for link in links %}
+        <li>
+            <a href="{{ link.url }}">{{ link.text }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    {% if tracking.track_opens %}
+    <img src="http://{{ tracking.tracking_domain }}/open/{{ message_id }}" width="1" height="1" alt="">
+    {% endif %}
+
+    <p>Best regards,<br>{{ sender_name }}</p>
+</body>
+
+</html>

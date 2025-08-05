@@ -1,0 +1,10 @@
+Hello {{ recipient_name|default('Valued Customer') }}!
+
+Thank you for your interest in our services. Here are some useful links:
+
+{% for link in links %}
+- {{ link.text }}: {{ link.url }}
+{% endfor %}
+
+Best regards,
+{{ sender_name }}
