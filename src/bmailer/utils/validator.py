@@ -2,7 +2,9 @@ import csv
 import logging
 import re
 from pathlib import Path
-from typing import List, Dict
+from typing import List
+
+from bmailer.models.recipient import Recipient
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -14,7 +16,7 @@ def validate_email(email: str) -> bool:
     return re.match(pattern, email) is not None
 
 
-def load_recipients(file_path: Path) -> List[Dict]:
+def load_recipients(file_path: Path) -> List[Recipient]:
     """Load and validate recipients from CSV"""
     valid_recipients = []
 
@@ -36,7 +38,8 @@ def load_recipients(file_path: Path) -> List[Dict]:
             for row in reader:
                 email = row["email"].strip()
                 if validate_email(email):
-                    valid_recipients.append(row)
+                    name = row.get("name", "").strip()
+                    valid_recipients.append(Recipient(email=email, name=name))
                 else:
                     logger.warning(f"Invalid email skipped: {email}")
 

@@ -6,7 +6,13 @@ from pathlib import Path
 from bmailer.modules.email import build_email
 from bmailer.modules.sender import EmailSender
 from bmailer.utils.validator import load_recipients
-from config import EMAIL_CONFIG, TRACKING_CONFIG
+from bmailer.utils.file_worker import load_links
+from config import (
+    EmailConfig,
+    SmtpConfig,
+    ClientConfig,
+    TrackingConfig,
+)
 from utils.logging_config import setup_logging
 
 setup_logging()
@@ -48,34 +54,41 @@ def main():
 
         # Initialize email sender
         sender = EmailSender(
-            smtp_server=EMAIL_CONFIG["mta_server"],
-            smtp_port=EMAIL_CONFIG["mta_port"],
-            smtp_username=EMAIL_CONFIG["smtp_username"],
-            smtp_password=EMAIL_CONFIG["smtp_password"],
-            sender_email=EMAIL_CONFIG["sender_email"],
-            retries=EMAIL_CONFIG["retries"],
-            timeout=EMAIL_CONFIG["timeout"],
-            delay=EMAIL_CONFIG["delay"],
+            smtp_server=SmtpConfig.SMTP_SERVER,
+            smtp_port=SmtpConfig.SMTP_PORT,
+            smtp_username=SmtpConfig.SMTP_USERNAME,
+            smtp_password=SmtpConfig.SMTP_PASSWORD,
+            sender_email=EmailConfig.SENDER_EMAIL,
+            retries=ClientConfig.RETRIES,
+            timeout=ClientConfig.TIMEOUT,
+            delay=ClientConfig.DELAY,
         )
         success_count = 0
         fail_count = 0
 
         # Send emails
         for recipient in recipients:
+            links = load_links(
+                file_path=DATA_DIR / "links.csv",
+                is_tracking_enabled=TrackingConfig.TRACK_CLICKS,
+                tracking_domain=TrackingConfig.TRACKING_DOMAIN,
+            )
             email_content = build_email(
                 template_path=TEMPLATES_DIR,
-                recipient_path=DATA_DIR / "recipients.csv",
-                recipient_email=recipient["email"],
-                sender_email=EMAIL_CONFIG["sender_email"],
+                recipient_email=recipient.email,
+                recipient_name=recipient.name,
+                sender_name=EmailConfig.SENDER_NAME,
+                sender_email=EmailConfig.SENDER_EMAIL,
+                reply_to=EmailConfig.REPLY_TO,
+                links=links,
+                track_opens=TrackingConfig.TRACK_OPENS,
+                tracking_domain=TrackingConfig.TRACKING_DOMAIN,
                 subject=args.subject,
-                link_path=DATA_DIR / "links.csv",
-                is_tracking_enabled=TRACKING_CONFIG["track_clicks"],
-                tracking_domain=TRACKING_CONFIG["tracking_domain"],
                 template_name=args.template,
             )
 
             if args.dry_run:
-                logger.info(f"DRY RUN: Would send to {recipient['email']}")
+                logger.info(f"DRY RUN: Would send to {recipient.email}")
                 success_count += 1
             else:
                 if sender.send(email_content):
