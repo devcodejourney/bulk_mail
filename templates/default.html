@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <meta charset="{{ config.CHARSET }}">
+    <meta charset="{{ charset }}">
     <title>{{ subject }}</title>
 </head>
 
@@ -19,8 +19,8 @@
         {% endfor %}
     </ul>
 
-    {% if tracking.track_opens %}
-    <img src="http://{{ tracking.tracking_domain }}/open/{{ message_id }}" width="1" height="1" alt="">
+    {% if track_opens %}
+    <img src="http://{{ tracking_domain }}/open/{{ message_id }}" width="1" height="1" alt="">
     {% endif %}
 
     <p>Best regards,<br>{{ sender_name }}</p>
