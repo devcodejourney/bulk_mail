@@ -3,20 +3,18 @@ import logging
 import time
 from pathlib import Path
 
+from bmailer import EmailSender
 from bmailer.modules.email import build_email
-from bmailer.modules.sender import EmailSender
-from bmailer.utils.validator import load_recipients
-from bmailer.utils.file_worker import load_links
+from bmailer.utils.file_worker import load_links, load_recipients
 from config import (
     EmailConfig,
-    SmtpConfig,
     ClientConfig,
+    SmtpConfig,
     TrackingConfig,
 )
 from utils.logging_config import setup_logging
 
 setup_logging()
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 

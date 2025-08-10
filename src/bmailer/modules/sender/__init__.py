@@ -3,6 +3,7 @@ import socket
 import ssl
 import time
 
+from bmailer.models.email_package import EmailPackage
 from bmailer.utils.decode_config import _decode
 
 logger = logging.getLogger(__name__)
@@ -45,7 +46,7 @@ class EmailSender:
         sock.sendall(command.encode() + b"\r\n")
         return self._expect_response(sock, expected_code)
 
-    def _starttls(self, sock: socket.socket):
+    def _starttls(self, sock: socket.socket) -> ssl.SSLSocket:
         try:
             self._smtp_command(sock, "STARTTLS", 220)
             context = ssl.create_default_context()
@@ -54,7 +55,7 @@ class EmailSender:
         except Exception as e:
             raise Exception(f"TLS handshake failed: {str(e)}")
 
-    def _authenticate(self, sock):
+    def _authenticate(self, sock: socket.socket) -> None:
         try:
             self._smtp_command(sock, "AUTH LOGIN", 334)
             self._smtp_command(sock, _decode(self.smtp_username), 334)
@@ -62,7 +63,7 @@ class EmailSender:
         except Exception as e:
             raise Exception(f"Authentication failed: {str(e)}")
 
-    def send(self, email_package):
+    def send(self, email_package: EmailPackage) -> bool:
         for attempt in range(self.retries):
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -102,16 +103,16 @@ class EmailSender:
 
                     # Send email
                     self._smtp_command(sock, f"MAIL FROM:<{self.sender_email}>")
-                    self._smtp_command(sock, f"RCPT TO:<{email_package['to']}>")
+                    self._smtp_command(sock, f"RCPT TO:<{email_package.to}>")
                     self._smtp_command(sock, "DATA", 354)
 
                     # Send email data
-                    sock.sendall(email_package["data"].encode() + b"\r\n.\r\n")
+                    sock.sendall(email_package.data.encode() + b"\r\n.\r\n")
                     self._expect_response(sock, 250)
 
                     # Quit
                     self._smtp_command(sock, "QUIT", 221)
-                    logger.info(f"Email sent successfully to {email_package['to']}")
+                    logger.info(f"Email sent successfully to {email_package.to}")
                     return True
 
             except Exception as e:
@@ -121,3 +122,5 @@ class EmailSender:
                     continue
                 logger.error(f"Failed to send after {self.retries} attempts")
                 return False
+
+        return False

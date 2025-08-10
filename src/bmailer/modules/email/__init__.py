@@ -7,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from bmailer.models.email_package import EmailPackage
 from bmailer.models.tracking_link import TrackingLink
 
 
@@ -42,7 +43,7 @@ def build_email(
     tracking_domain: str = "",
     links: List[TrackingLink] = [],
     template_name: Optional[str] = None,
-) -> Dict[str, str]:
+) -> EmailPackage:
     """Build complete email with headers and body"""
     # Load templates
     env = Environment(loader=FileSystemLoader(template_path))
@@ -96,4 +97,4 @@ Content-Type: text/html; charset={CHARSET}
 
 --BOUNDARY--
 """
-    return {"to": recipient_email, "data": email_data}
+    return EmailPackage(to=recipient_email, data=email_data)
